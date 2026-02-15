@@ -1,12 +1,12 @@
 from pydantic import BaseModel
 from typing import Dict, Any, Optional
 
-class DealWebhook(BaseModel):
-    deal_id: int
+class SmartProcessWebhook(BaseModel):
+    smart_process_id: int
 
-class DealResponse(BaseModel):
+class SmartProcessResponse(BaseModel):
     status: str
     message: str
-    deal_id: int
+    smart_process_id: Optional[int] = None
     download_url: Optional[str] = None
     bitrix_data: Optional[Dict[str, Any]] = None

@@ -5,14 +5,14 @@ from app.logger import get_logger
 
 logger = get_logger("WorkflowService")
 
-async def process_deal_event(deal_id: int) -> dict:
+async def process_smart_event(smart_process_id: int) -> dict:
     """
     Полный цикл: Bitrix -> Excel -> Link
     """
-    logger.info(f"Start processing workflow for Deal ID: {deal_id}")
+    logger.info(f"Start processing workflow for Deal ID: {smart_process_id}")
     
     # 1. Получаем данные из Bitrix24
-    deal_data = await bitrix_client.get_deal(deal_id)
+    deal_data = await bitrix_client.get_deal(smart_process_id)
     
     # 2. Формируем Excel файл
     filename = create_deal_report(deal_data)
@@ -26,7 +26,7 @@ async def process_deal_event(deal_id: int) -> dict:
     return {
         "status": "success",
         "message": "Deal processed and Excel generated",
-        "deal_id": deal_id,
+        "smart_process_id": smart_process_id,
         "download_url": download_url,
         "bitrix_data": {
             "ID": deal_data.get("ID"),
