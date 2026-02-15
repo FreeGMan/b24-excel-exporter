@@ -11,11 +11,12 @@ logger = get_logger("SettingsInit")
 class Settings(BaseModel):
     host: str = "127.0.0.1"
     port: int = 8000
-    version: str = "v1"
     files_dir: str = "files"
     ssl_keyfile: str
     ssl_certfile: str
     b24_webhook_url: str = Field(..., description="URL вебхука Bitrix24 обязателен")
+    smart_process_type_id: str
+    sp_deals_uf: str
 
 def load_config() -> Settings:
     """
