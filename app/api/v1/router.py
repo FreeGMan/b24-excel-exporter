@@ -10,6 +10,10 @@ logger = get_logger("API_v1")
 async def test_echo(text: str = "default"):
     return {"status": "success", "version": "v1", "received_text": text}
 
+@router.post("/test")
+async def test_echo(payload):
+    return {"status": "success", "version": "v1", "received_data": payload}
+
 # --- POST ---
 @router.post("/sendDealData", response_model=DealResponse)
 async def send_deal_data_post(payload: DealWebhook):
