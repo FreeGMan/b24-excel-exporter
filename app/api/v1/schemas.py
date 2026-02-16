@@ -1,10 +1,13 @@
 from pydantic import BaseModel
 from typing import Dict, Any, Optional
 
-class TestResponse(BaseModel):
+class TestReqest(BaseModel):
     status: str
     version: str
     received_data: str
+
+class TestResponse(BaseModel):
+    msg: Optional[str] = "" 
 
 class SmartProcessWebhook(BaseModel):
     smart_process_id: int
