@@ -1,16 +1,16 @@
 from fastapi import APIRouter, HTTPException, Query
-from app.api.v1.schemas import SmartProcessWebhook, SmartProcessResponse
+from app.api.v1.schemas import *
 from app.logger import get_logger
 from app.services.workflow import process_smart_event
 
 router = APIRouter()
 logger = get_logger("API_v1")
 
-@router.get("/test")
+@router.get("/test", response_model=TestResponse)
 async def test_echo(text: str = "default"):
-    return {"status": "success", "version": "v1", "received_text": text}
+    return {"status": "success", "version": "v1", "received_data": text}
 
-@router.post("/test")
+@router.post("/test", response_model=TestResponse)
 async def test_echo(payload):
     return {"status": "success", "version": "v1", "received_data": payload}
 
