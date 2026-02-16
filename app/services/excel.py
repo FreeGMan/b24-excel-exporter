@@ -5,33 +5,34 @@ from app.logger import get_logger
 
 logger = get_logger("ExcelService")
 
-def create_deal_report(deal_data: dict) -> str:
+def create_deal_report(smart_process_id: int, deals_data: list) -> str:
     """
-    Создает Excel файл на основе данных сделки.
+    Создает Excel файл на основе данных сделок и помещает его в каталог файлов.
     Возвращает имя созданного файла.
     """
     try:
-        deal_id = deal_data.get("ID", "unknown")
-        filename = f"deal_{deal_id}.xlsx"
+        filename = f"deal_{smart_process_id}.xlsx"
         filepath = os.path.join(settings.files_dir, filename)
 
         wb = Workbook()
         ws = wb.active
-        ws.title = f"Deal {deal_id}"
+        ws.title = f"Deal {smart_process_id}"
 
-        # Формируем заголовки и строку данных
-        # Bitrix возвращает много полей, можно фильтровать, но пока запишем всё плоским списком
+        # Формируем заголовки
         headers = []
-        values = []
-
-        for key, value in deal_data.items():
+        for key, value in deals_data[0].items():
             headers.append(key)
-            # Приводим к строке, чтобы Excel не ругался на сложные типы (если они есть)
-            values.append(str(value) if value is not None else "")
 
-        # Записываем в Excel
+        # Записываем заголовки в Excel
         ws.append(headers) # 1-я строка
-        ws.append(values)  # 2-я строка
+
+        # Обходим и пишем строки из данных сделок
+        for deal_data in deals_data:
+            values = []
+            for key, value in deal_data.items():
+                # Приводим к строке, чтобы Excel не ругался на сложные типы (если они есть)
+                values.append(str(value) if value is not None else "")
+            ws.append(values)
 
         wb.save(filepath)
         logger.info(f"Excel report created: {filepath}")

@@ -9,15 +9,32 @@ async def process_smart_event(smart_process_id: int) -> dict:
     """
     Полный цикл: Bitrix -> Excel -> Link
     """
-    logger.info(f"Start processing workflow for Deal ID: {smart_process_id}")
+    logger.info(f"Start processing workflow for smart-process ID: {smart_process_id}")
     
-    # 1. Получаем данные из Bitrix24
-    deal_data = await bitrix_client.get_deal(smart_process_id)
+    # 1. Получаем массив сделок из смарт-процесса
+    deals_ids = await bitrix_client.get_deals_from_sp(smart_process_id)
+    if not deals_ids:
+        logger.warning(f"Deals array for smart-process {smart_process_id} was empty")
+        return {
+            "status": "warning",
+            "message": f"Deals array for smart-process {smart_process_id} was empty",
+            "smart_process_id": smart_process_id
+        }   
     
-    # 2. Формируем Excel файл
-    filename = create_deal_report(deal_data)
+    # 2. Получаем данные полей сделок
+    deals_data = await bitrix_client.get_deals(deals_ids)
+    if not deals_data:
+        logger.warning("Deals data array was empty")
+        return {
+            "status": "warning",
+            "message": "Deals data array was empty",
+            "smart_process_id": smart_process_id
+        }   
+
+    # 3. Формируем Excel файл
+    filename = create_deal_report(smart_process_id, deals_data)
     
-    # 3. Формируем прямую ссылку на скачивание
+    # 4. Формируем прямую ссылку на скачивание
     protocol = "https" 
     download_url = f"{protocol}://{settings.host}:{settings.port}/{settings.files_dir}/{filename}"
     
@@ -27,11 +44,5 @@ async def process_smart_event(smart_process_id: int) -> dict:
         "status": "success",
         "message": "Deal processed and Excel generated",
         "smart_process_id": smart_process_id,
-        "download_url": download_url,
-        "bitrix_data": {
-            "ID": deal_data.get("ID"),
-            "TITLE": deal_data.get("TITLE"),
-            "OPPORTUNITY": deal_data.get("OPPORTUNITY"),
-            "CURRENCY_ID": deal_data.get("CURRENCY_ID")
-        }
+        "download_url": download_url
     }

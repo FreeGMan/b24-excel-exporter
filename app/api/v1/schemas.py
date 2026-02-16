@@ -9,4 +9,3 @@ class SmartProcessResponse(BaseModel):
     message: str
     smart_process_id: Optional[int] = None
     download_url: Optional[str] = None
-    bitrix_data: Optional[Dict[str, Any]] = None

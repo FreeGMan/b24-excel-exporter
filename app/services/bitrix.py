@@ -40,7 +40,39 @@ class BitrixClient:
                 logger.error(f"HTTP error from Bitrix24: {e}")
                 raise
 
-    async def get_deals_from_smart_process(self, smart_process_id: int) -> dict:
+    async def get_deals(self, deals_ids: list[int]) -> dict:
+        """
+        Получает информацию о сделках по массиву ID из Bitrix24.
+        Метод API: crm.deal.list
+        """
+        
+        method = "crm.deal.list"
+        url = f"{self.webhook_url}/{method}"
+        
+        params = {
+            "SELECT": ["ID", "TITLE"],
+            "FILTER": {
+                "@ID": deals_ids
+            }
+        }
+
+        async with httpx.AsyncClient() as client:
+            try:
+                response = await client.post(url, json=params, timeout=10.0)
+                response.raise_for_status()
+                
+                result = result_handler(response.json())
+                logger.info(f"Successfully fetched deals {deals_ids} data")
+                return result
+
+            except httpx.RequestError as e:
+                logger.error(f"Network error while connecting to Bitrix24: {e}")
+                raise
+            except httpx.HTTPStatusError as e:
+                logger.error(f"HTTP error from Bitrix24: {e}")
+                raise
+
+    async def get_deals_from_sp(self, smart_process_id: int) -> dict:
         """
         Получает массив сделок из реквизита смарт-процесса по ID из Bitrix24.
         ИД типа смарт-процесса и имя доп реквизита с массимов сделок указываются в файле настроек.
@@ -61,15 +93,16 @@ class BitrixClient:
                 response.raise_for_status()
                 
                 result = result_handler(response.json())
-                logger.info(f"Successfully fetched smart process {smart_process_id}. Title: {result.get('TITLE')}")
+                item_data = result.get('item')
+                logger.info(f"Successfully fetched smart process {smart_process_id}. Title: {item_data.get('title')}")
                 
-                deals_array = result.get(settings.sp_deals_uf, None)
-                if deals_array:
+                deals_array = item_data.get(settings.sp_deals_uf, [])
+                if deals_array and isinstance(deals_array, list):
                     logger.info(f"Deals array: {deals_array}")
                 else:
                     logger.warning(f"Deals array is empty or unreachable")
 
-                return deals_array
+                return [int(item) for item in deals_array]
 
             except httpx.RequestError as e:
                 logger.error(f"Network error while connecting to Bitrix24: {e}")
