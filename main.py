@@ -1,6 +1,8 @@
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from app.config import settings
 from app.api.v1.router import router as router_v1
 from app.logger import get_logger
@@ -33,4 +35,15 @@ if __name__ == "__main__":
         reload=True,
         ssl_keyfile=settings.ssl_keyfile,
         ssl_certfile=settings.ssl_certfile
+    )
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    # Логируем детали ошибки в консоль
+    logger.debug(f"DEBUG: Ошибка валидации: {exc.errors()}")
+    logger.debug(f"DEBUG: Тело запроса: {await request.body()}")
+    
+    return JSONResponse(
+        status_code=422,
+        content={"detail": exc.errors(), "body": str(await request.body())},
     )
