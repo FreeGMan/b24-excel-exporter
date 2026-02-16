@@ -28,7 +28,7 @@ if __name__ == "__main__":
     logger.info(f"Starting server at https://{settings.host}:{settings.port}")
     uvicorn.run(
         "main:app", 
-        host=settings.host, 
+        host="0.0.0.0", 
         port=settings.port, 
         reload=True,
         ssl_keyfile=settings.ssl_keyfile,

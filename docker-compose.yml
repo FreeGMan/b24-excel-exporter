@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  b24-exporter:
+    container_name: b24-excel-exporter
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      # Конфиг
+      - ./serviceProperties.json:/app/serviceProperties.json
+      # Папка с файлами отчетов
+      - ./files:/app/files
+      # Сертификаты SSL для работы https
+      - ./certs:/app/certs
+    restart: unless-stopped

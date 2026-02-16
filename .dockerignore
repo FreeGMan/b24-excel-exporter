@@ -1,0 +1,13 @@
+venv/
+__pycache__/
+*.pyc
+.git/
+.gitignore
+.dockerignore
+.env
+*.xlsx
+*.pem
+files/*
+!files/.gitkeep
+certs/*
+serviceProperties.json

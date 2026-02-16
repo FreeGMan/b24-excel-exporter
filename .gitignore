@@ -4,4 +4,6 @@ __pycache__/
 *.xlsx
 *.pem
 .env
+files/*
+certs/*
 serviceProperties.json
