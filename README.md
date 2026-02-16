@@ -22,6 +22,15 @@
 
 Для запуска сервиса используется Docker. Следуйте шагам ниже.
 
+### Шаг 0. Клонирование репозитория
+
+Клонируем репозиторий и проваливаемся в рабочую папку
+
+```bash
+git clone https://github.com/FreeGMan/b24-excel-exporter
+cd b24-excel-exporter
+```
+
 ### Шаг 1. Генерация SSL сертификатов
 
 Сервис требует наличия SSL сертификатов для работы по HTTPS.
@@ -36,27 +45,33 @@ openssl req -x509 -newkey rsa:4096 -keyout certs/key.pem -out certs/cert.pem -da
 ### Шаг 2. Конфигурация
 
 Создайте в корне проекта файл `serviceProperties.json`.
-Используйте пример ниже, заменив `b24_webhook_url` на ваш реальный вебхук из Bitrix24.
+Используйте пример ниже, заменив `b24_webhook_url` на ваш реальный вебхук из Bitrix24, а `smart_process_type_id` и `sp_deals_uf` на соответствующие ID из Bitrix24.
+Так же необходимо изменить внешний IP или домен в `host`. 
 
 **Пример `serviceProperties.json`:**
 
 ```json
 {
-    "public_host": "127.0.0.1",
+    "host": "127.0.0.1",
     "port": 8000,
-    "version": "v1",
     "files_dir": "files",
     "ssl_keyfile": "certs/key.pem",
     "ssl_certfile": "certs/cert.pem",
-    "b24_webhook_url": "https://ВАШ_ПОРТАЛ.bitrix24.ru/rest/1/ВАШ_КЛЮЧ/"
+    "b24_webhook_url": "https://ВАШ_ПОРТАЛ.bitrix24.ru/rest/1/ВАШ_КЛЮЧ/",
+    "smart_process_type_id" : "1040",
+    "sp_deals_uf" : "ufCrm8_1770008727"
 }
 ```
 
 **Описание параметров:**
-*   `public_host`: IP-адрес или домен, который будет использоваться для генерации ссылок на скачивание файла (снаружи Docker контейнера).
+*   `host`: IP-адрес или домен, который будет использоваться для генерации ссылок на скачивание файла.
 *   `port`: Порт, на котором работает сервис.
-*   `b24_webhook_url`: URL входящего вебхука (права: CRM).
 *   `files_dir`: Папка внутри контейнера для хранения отчетов.
+*   `ssl_keyfile`: Путь к файлу ключа сертификата.
+*   `ssl_certfile`: Путь к файлу сертификата.
+*   `b24_webhook_url`: URL входящего вебхука (права: CRM).
+*   `smart_process_type_id`: ID типа смарт-процесса в Bitrix24.
+*   `sp_deals_uf`: ID пользовательского реквизита, в котором расположен массив связанных сделок.
 
 ### Шаг 3. Запуск в Docker
 
