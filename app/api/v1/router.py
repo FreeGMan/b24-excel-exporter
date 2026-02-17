@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Query, Form
+from fastapi import APIRouter, HTTPException, Query, Depends
 from app.api.v1.schemas import *
 from app.logger import get_logger
 from app.services.workflow import process_smart_event
@@ -26,8 +26,8 @@ async def send_deal_data_get(smart_process_id: int = Query(..., description="ID 
 @router.post("/sendDealData", response_model=SmartProcessResponse)
 async def send_deal_data_post(
     payload: Optional[SmartProcessWebhook] = None,
-    smart_process_id: Optional[int] = Query(None, description="ID смарт-процесса"),
-    bitrix_raw_id: Optional[str] = Form(None, alias="document_id[2]")):
+    smart_process_id: Optional[int] = Query(None, alias="smart_process_id", description="ID смарт-процесса"),
+    bitrix_raw_id: BitrixForm = Depends()):
 
     if bitrix_raw_id:
         logger.debug(f"Raw Bitrix24 income data: {bitrix_raw_id}")
