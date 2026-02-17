@@ -1,4 +1,6 @@
 import httpx
+import base64
+import os
 from app.config import settings
 from app.logger import get_logger
 
@@ -109,6 +111,60 @@ class BitrixClient:
                 raise
             except httpx.HTTPStatusError as e:
                 logger.error(f"HTTP error from Bitrix24: {e}")
+                raise
+
+    async def send_file_as_comment_to_timeline(self, etity_type: str, etity_id: int, file_path: str) -> dict:
+        """
+        Отправляет файл в комментарий таймлайна.
+        Метод API: crm.timeline.comment.add
+        """
+        if not os.path.exists(file_path):
+            logger.error(f"File not found: {file_path}")
+            raise FileNotFoundError(f"File not found: {file_path}")
+
+        filename = os.path.basename(file_path)
+
+        # 1. Читаем файл и кодируем в Base64
+        try:
+            with open(file_path, "rb") as file:
+                file_content = file.read()
+                # Кодируем байты в b64-bytes, затем декодируем в строку (utf-8) для JSON
+                encoded_string = base64.b64encode(file_content).decode('utf-8')
+        except Exception as e:
+            logger.error(f"Error encoding file to base64: {e}")
+            raise
+
+        # 2. Формируем
+        method = "crm.timeline.comment.add"
+        url = f"{self.webhook_url}/{method}"
+
+        params = {
+            "fields": {
+                "ENTITY_ID": etity_id,
+                "ENTITY_TYPE": etity_type,
+                "COMMENT": f"Файл успешно сформирован",
+                "FILES": [
+                    [filename, encoded_string]
+                ]
+            }
+        }
+
+        # 3. Отправляем
+        async with httpx.AsyncClient() as client:
+            try:
+                logger.info(f"Sending file {filename} to Bitrix24 to {etity_id}...")
+                response = await client.post(url, json=params, timeout=30.0) # Таймаут побольше для файлов
+                response.raise_for_status()
+                
+                result = result_handler(response.json())
+                logger.info(f"Successfully sent file to timeline. Comment ID: {result}")
+                return result
+
+            except httpx.RequestError as e:
+                logger.error(f"Network error while sending file to Bitrix24: {e}")
+                raise
+            except httpx.HTTPStatusError as e:
+                logger.error(f"HTTP error from Bitrix24 (send file): {e}")
                 raise
 
 # Создаем экземпляр клиента

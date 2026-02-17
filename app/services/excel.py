@@ -11,12 +11,12 @@ def create_deal_report(smart_process_id: int, deals_data: list) -> str:
     Возвращает имя созданного файла.
     """
     try:
-        filename = f"deal_{smart_process_id}.xlsx"
+        filename = f"ticket_register_{smart_process_id}.xlsx"
         filepath = os.path.join(settings.files_dir, filename)
 
         wb = Workbook()
         ws = wb.active
-        ws.title = f"Deal {smart_process_id}"
+        ws.title = f"Реестр билетов №{smart_process_id}"
 
         # Формируем заголовки
         headers = []
