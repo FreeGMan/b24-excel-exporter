@@ -58,8 +58,18 @@ openssl req -x509 -newkey rsa:4096 -keyout certs/key.pem -out certs/cert.pem -da
     "ssl_keyfile": "certs/key.pem",
     "ssl_certfile": "certs/cert.pem",
     "b24_webhook_url": "https://ВАШ_ПОРТАЛ.bitrix24.ru/rest/1/ВАШ_КЛЮЧ/",
-    "smart_process_type_id" : "1040",
-    "sp_deals_uf" : "ufCrm8_1770008727"
+    "deals_fields_for_report" : [
+        "ID",
+        "NAME",
+        "..."
+    ],
+    "smart_process_settings" : {
+        "1040" : {
+            "deals_uf" : "ufCrm8_1770008727",
+            "file_uf" : "ufCrm8_1770008727"
+        },
+        "..."
+    }
 }
 ```
 
@@ -70,8 +80,8 @@ openssl req -x509 -newkey rsa:4096 -keyout certs/key.pem -out certs/cert.pem -da
 *   `ssl_keyfile`: Путь к файлу ключа сертификата.
 *   `ssl_certfile`: Путь к файлу сертификата.
 *   `b24_webhook_url`: URL входящего вебхука (права: CRM).
-*   `smart_process_type_id`: ID типа смарт-процесса в Bitrix24.
-*   `sp_deals_uf`: ID пользовательского реквизита, в котором расположен массив связанных сделок.
+*   `deals_fields_for_report`: Массив полей сделки, для вывода в отчет Excel.
+*   `smart_process_settings`: Структура натроек ИД полей для каждого смарт-процесса, где ключ это ID смарт-процесса, а значение структура описывающая необходимые для работы скрипта поля (таки как deals_uf, file_uf и пр.).
 
 ### Шаг 3. Запуск в Docker
 
@@ -117,6 +127,7 @@ openssl req -x509 -newkey rsa:4096 -keyout certs/key.pem -out certs/cert.pem -da
 *   **Тело запроса (JSON) (или параметыр GET):**
     ```json
     {
+      "smart_type_id": 1040,
       "smart_process_id": 10
     }
     ```
@@ -125,6 +136,7 @@ openssl req -x509 -newkey rsa:4096 -keyout certs/key.pem -out certs/cert.pem -da
     {
       "status": "success",
       "message": "Deal processed and Excel generated",
+      "smart_type_id": 1040,
       "smart_process_id": 10,
       "download_url": "https://127.0.0.1:8000/files/deal_10.xlsx"
     }
