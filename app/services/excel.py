@@ -8,6 +8,8 @@ logger = get_logger("ExcelService")
 def create_deal_report(smart_process_id: int, deals_data: list) -> str:
     """
     Создает Excel файл на основе данных сделок и помещает его в каталог файлов.
+    Данные сделок передабются как массив (строки) массивов (значения ячеек в строке массивом).
+    Первая строка считается заголовочной.
     Возвращает имя созданного файла.
     """
     try:
@@ -18,21 +20,8 @@ def create_deal_report(smart_process_id: int, deals_data: list) -> str:
         ws = wb.active
         ws.title = f"Реестр билетов №{smart_process_id}"
 
-        # Формируем заголовки
-        headers = []
-        for key, value in deals_data[0].items():
-            headers.append(key)
-
-        # Записываем заголовки в Excel
-        ws.append(headers) # 1-я строка
-
-        # Обходим и пишем строки из данных сделок
         for deal_data in deals_data:
-            values = []
-            for key, value in deal_data.items():
-                # Приводим к строке, чтобы Excel не ругался на сложные типы (если они есть)
-                values.append(str(value) if value is not None else "")
-            ws.append(values)
+            ws.append(deal_data)
 
         wb.save(filepath)
         logger.info(f"Excel report created: {filepath}")

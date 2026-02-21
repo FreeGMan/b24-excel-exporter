@@ -13,6 +13,29 @@ class BitrixClient:
             logger.critical("Bitrix24 Webhook URL is missing in configuration!")        
             raise ValueError("Bitrix24 Webhook URL is missing in configuration!")   
 
+    async def get_deal_fields(self) -> dict:
+        """
+        Возвращает описание полей сделки, в том числе пользовательских из Bitrix24.
+        Метод API: crm.deal.fields
+        """
+        
+        method = "crm.deal.fields"
+        url = f"{self.webhook_url}/{method}"
+        
+        async with httpx.AsyncClient() as client:
+            try:
+                response = await client.post(url, timeout=10.0)
+                response.raise_for_status()
+                
+                return result_handler(response.json())
+
+            except httpx.RequestError as e:
+                logger.error(f"Network error while connecting to Bitrix24: {e}")
+                raise
+            except httpx.HTTPStatusError as e:
+                logger.error(f"HTTP error from Bitrix24: {e}")
+                raise
+
     async def get_deal(self, deal_id: int) -> dict:
         """
         Получает информацию о сделке по ID из Bitrix24.
@@ -172,7 +195,7 @@ class BitrixClient:
 # Создаем экземпляр клиента
 bitrix_client = BitrixClient()
 
-def result_handler(data: any) -> any:
+def result_handler(data: any) -> dict:
     """
     Обрабабатывает полученные данные от API Bitrix24.
     В случае не соответствия ожидаемому типу данных и при возрврате ошибки Bitrix'ом вызывает исключение.

@@ -42,19 +42,51 @@ async def process_smart_event(smart_type_id: int, smart_process_id: int) -> dict
             "message": "Deals data array was empty",
             "smart_type_id": smart_type_id,
             "smart_process_id": smart_process_id
-        }   
+        }
 
-    # 3. Формируем Excel файл
-    filename = create_deal_report(smart_process_id, deals_data)
+    # 3. Подготавливаем данные для вывода в Excel
+    deal_fields = await bitrix_client.get_deal_fields()
+    data_for_excel = []
     
-    # 4. Отправляем файл в коммент к смарт-процессу
+    if deal_fields:
+        # Первой строкой должны быть имена колонок
+        title_row = []
+        for key, value in deals_data[0].items():
+            field_prop = deal_fields.get(key)
+            # Преобразем имена полей в их полные наименования для вывода в заголовки
+            if type(field_prop) is dict:
+                field_title = field_prop.get("listLabel", field_prop["title"])
+            else:
+                field_title = f"{key}"
+            
+            title_row.append(field_title)
+        data_for_excel.append(title_row)
+
+        for deal_data in deals_data:
+            deal_row = []
+            for key, value in deal_data.items():
+                final_value = value
+                field_prop = deal_fields.get(key)
+                
+                # Если это списочное поле, то берем значение 
+                if field_prop.get("items"):
+                    field_values = {item["ID"]: item["VALUE"] for item in field_prop["items"]}
+                    final_value = field_values.get(value, value)
+                
+                deal_row.append(final_value)
+            data_for_excel.append(deal_row)       
+
+    # 4. Формируем Excel файл
+    filename = create_deal_report(smart_process_id, data_for_excel)
+    
+    # 5. Отправляем файл в коммент к смарт-процессу
     await bitrix_client.send_file_as_comment_to_timeline(
         f"dynamic_{smart_type_id}", # Для комментариев в таймлайне, тип объекта смарт-процесса не просто его ID
         smart_process_id,
         os.path.join(settings.files_dir, filename)
     ) 
     
-    # 5. Формируем прямую ссылку на скачивание
+    # 6. Формируем прямую ссылку на скачивание
     protocol = "https" 
     download_url = f"{protocol}://{settings.host}:{settings.port}/{settings.files_dir}/{filename}"
     
