@@ -52,7 +52,7 @@ class BitrixClient:
         url = f"{self.webhook_url}/{method}"
         
         params = {
-            "SELECT": ["ID", "TITLE"],
+            "SELECT": settings.deals_fields_for_report,
             "FILTER": {
                 "@ID": deals_ids
             }
@@ -74,19 +74,21 @@ class BitrixClient:
                 logger.error(f"HTTP error from Bitrix24: {e}")
                 raise
 
-    async def get_deals_from_sp(self, smart_process_id: int) -> dict:
+    async def get_deals_from_sp(self, smart_type_id: int, smart_process_id: int) -> dict:
         """
         Получает массив сделок из реквизита смарт-процесса по ID из Bitrix24.
-        ИД типа смарт-процесса и имя доп реквизита с массимов сделок указываются в файле настроек.
+        Имя доп реквизита с массивом сделок указываются в файле настроек для каждого ID типа смарт-процесса.
         Метод API: crm.item.get
         """
 
         method = "crm.item.get"
         url = f"{self.webhook_url}/{method}"
-        
+        smart_process_settings = settings.smart_process_settings.get(f"{smart_type_id}", {})
+        deals_uf = smart_process_settings.get("deals_uf", None)
+
         params = {
             "id": smart_process_id,
-            "entityTypeId": settings.smart_process_type_id
+            "entityTypeId": smart_type_id
         }
 
         async with httpx.AsyncClient() as client:
@@ -96,9 +98,9 @@ class BitrixClient:
                 
                 result = result_handler(response.json())
                 item_data = result.get('item')
-                logger.info(f"Successfully fetched smart process {smart_process_id}. Title: {item_data.get('title')}")
+                logger.info(f"Successfully fetched SP type ID {smart_type_id} and SP ID {smart_process_id}. Title: {item_data.get('title')}")
                 
-                deals_array = item_data.get(settings.sp_deals_uf, [])
+                deals_array = item_data.get(deals_uf, [])
                 if deals_array and isinstance(deals_array, list):
                     logger.info(f"Deals array: {deals_array}")
                 else:

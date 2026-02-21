@@ -6,19 +6,30 @@ from app.logger import get_logger
 
 logger = get_logger("WorkflowService")
 
-async def process_smart_event(smart_process_id: int) -> dict:
+async def process_smart_event(smart_type_id: int, smart_process_id: int) -> dict:
     """
-    Полный цикл: Bitrix -> Excel -> Link
+    Полный цикл: Bitrix -> Excel -> Link -> Bitrix
     """
     logger.info(f"Start processing workflow for smart-process ID: {smart_process_id}")
     
+    # 0. Проверяем наличие настроек, для переданного типа смарт-процесса
+    if not settings.smart_process_settings.get(f"{smart_type_id}", None):
+        logger.warning(f"No setting for smart-process type ID {smart_type_id}")
+        return {
+            "status": "warning",
+            "message": f"No setting for smart-process type ID {smart_type_id}",
+            "smart_type_id": smart_type_id,
+            "smart_process_id": smart_process_id
+        }        
+
     # 1. Получаем массив сделок из смарт-процесса
-    deals_ids = await bitrix_client.get_deals_from_sp(smart_process_id)
+    deals_ids = await bitrix_client.get_deals_from_sp(smart_type_id, smart_process_id)
     if not deals_ids:
         logger.warning(f"Deals array for smart-process {smart_process_id} was empty")
         return {
             "status": "warning",
             "message": f"Deals array for smart-process {smart_process_id} was empty",
+            "smart_type_id": smart_type_id,
             "smart_process_id": smart_process_id
         }   
     
@@ -29,6 +40,7 @@ async def process_smart_event(smart_process_id: int) -> dict:
         return {
             "status": "warning",
             "message": "Deals data array was empty",
+            "smart_type_id": smart_type_id,
             "smart_process_id": smart_process_id
         }   
 
@@ -37,7 +49,7 @@ async def process_smart_event(smart_process_id: int) -> dict:
     
     # 4. Отправляем файл в коммент к смарт-процессу
     await bitrix_client.send_file_as_comment_to_timeline(
-        f"dynamic_{settings.smart_process_type_id}", # Для комментариев в таймлайне, тип объекта смарт-процесса не просто его ID
+        f"dynamic_{smart_type_id}", # Для комментариев в таймлайне, тип объекта смарт-процесса не просто его ID
         smart_process_id,
         os.path.join(settings.files_dir, filename)
     ) 
@@ -51,6 +63,7 @@ async def process_smart_event(smart_process_id: int) -> dict:
     return {
         "status": "success",
         "message": "Deal processed and Excel generated",
+        "smart_type_id": smart_type_id,
         "smart_process_id": smart_process_id,
         "download_url": download_url
     }
