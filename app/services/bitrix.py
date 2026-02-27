@@ -65,7 +65,7 @@ class BitrixClient:
                 logger.error(f"HTTP error from Bitrix24: {e}")
                 raise
 
-    async def get_deals(self, deals_ids: list[int]) -> dict:
+    async def get_deals(self, deals_ids: list[int], smart_type_id: int) -> dict:
         """
         Получает информацию о сделках по массиву ID из Bitrix24.
         Метод API: crm.deal.list
@@ -74,8 +74,11 @@ class BitrixClient:
         method = "crm.deal.list"
         url = f"{self.webhook_url}/{method}"
         
+        smart_process_settings = settings.smart_process_settings.get(f"{smart_type_id}", {})
+        deals_fields_for_report = smart_process_settings.get("deals_fields_for_report", [])
+        
         params = {
-            "SELECT": settings.deals_fields_for_report,
+            "SELECT": deals_fields_for_report,
             "FILTER": {
                 "@ID": deals_ids
             }

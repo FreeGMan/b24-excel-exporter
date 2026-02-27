@@ -34,7 +34,7 @@ async def process_smart_event(smart_type_id: int, smart_process_id: int) -> dict
         }   
     
     # 2. Получаем данные полей сделок
-    deals_data = await bitrix_client.get_deals(deals_ids)
+    deals_data = await bitrix_client.get_deals(deals_ids, smart_type_id)
     if not deals_data:
         logger.warning("Deals data array was empty")
         return {

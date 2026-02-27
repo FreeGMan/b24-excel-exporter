@@ -15,7 +15,6 @@ class Settings(BaseModel):
     ssl_keyfile: str
     ssl_certfile: str
     b24_webhook_url: str = Field(..., description="URL вебхука Bitrix24 обязателен")
-    deals_fields_for_report: list = []
     smart_process_settings: dict = {}
 
 def load_config() -> Settings:
