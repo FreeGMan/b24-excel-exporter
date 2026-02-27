@@ -80,8 +80,8 @@ async def process_smart_event(smart_type_id: int, smart_process_id: int) -> dict
     filename = create_deal_report(smart_process_id, data_for_excel)
     
     # 5. Отправляем файл в коммент к смарт-процессу
-    await bitrix_client.send_file_as_comment_to_timeline(
-        f"dynamic_{smart_type_id}", # Для комментариев в таймлайне, тип объекта смарт-процесса не просто его ID
+    await bitrix_client.send_file_to_sp(
+        smart_type_id,
         smart_process_id,
         os.path.join(settings.files_dir, filename)
     ) 
