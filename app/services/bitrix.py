@@ -132,7 +132,10 @@ class BitrixClient:
                 else:
                     logger.warning(f"Deals array is empty or unreachable")
 
-                return [int(item) for item in deals_array]
+                return {
+                    "sp_title": item_data.get('title'),
+                    "deals_ids": [int(item) for item in deals_array]
+                    }
 
             except httpx.RequestError as e:
                 logger.error(f"Network error while connecting to Bitrix24: {e}")

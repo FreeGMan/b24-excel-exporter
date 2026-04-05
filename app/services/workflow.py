@@ -23,8 +23,8 @@ async def process_smart_event(smart_type_id: int, smart_process_id: int) -> dict
         }        
 
     # 1. Получаем массив сделок из смарт-процесса
-    deals_ids = await bitrix_client.get_deals_from_sp(smart_type_id, smart_process_id)
-    if not deals_ids:
+    sp_data = await bitrix_client.get_deals_from_sp(smart_type_id, smart_process_id)
+    if not sp_data["deals_ids"]:
         logger.warning(f"Deals array for smart-process {smart_process_id} was empty")
         return {
             "status": "warning",
@@ -34,7 +34,7 @@ async def process_smart_event(smart_type_id: int, smart_process_id: int) -> dict
         }   
     
     # 2. Получаем данные полей сделок
-    deals_data = await bitrix_client.get_deals(deals_ids, smart_type_id)
+    deals_data = await bitrix_client.get_deals(sp_data["deals_ids"], smart_type_id)
     if not deals_data:
         logger.warning("Deals data array was empty")
         return {
@@ -77,14 +77,14 @@ async def process_smart_event(smart_type_id: int, smart_process_id: int) -> dict
             data_for_excel.append(deal_row)       
 
     # 4. Формируем Excel файл
-    filename = create_deal_report(smart_process_id, data_for_excel)
+    filename = create_deal_report(smart_process_id, data_for_excel, sp_data["sp_title"])
     
     # 5. Отправляем файл в коммент к смарт-процессу
-    await bitrix_client.send_file_to_sp(
+    """ await bitrix_client.send_file_to_sp(
         smart_type_id,
         smart_process_id,
         os.path.join(settings.files_dir, filename)
-    ) 
+    ) """ 
     
     # 6. Формируем прямую ссылку на скачивание
     protocol = "https" 
